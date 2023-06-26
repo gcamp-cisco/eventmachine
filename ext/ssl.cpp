@@ -120,7 +120,7 @@ static void InitializeDefaultCredentials()
 SslContext_t::SslContext_t
 **************************/
 
-SslContext_t::SslContext_t (bool is_server, const std::string &privkeyfile, const std::string &certchainfile, const std::string &cipherlist, const std::string &ecdh_curve, const std::string &dhparam, int ssl_version) :
+SslContext_t::SslContext_t (bool is_server, const std::string &privkeyfile, const std::string &certchainfile, const std::string &cipherlist, const std::string &ecdh_curve, const std::string &dhparam, int ssl_version, bool alpn) :
 	bIsServer (is_server),
 	pCtx (NULL),
 	PrivateKey (NULL),
@@ -268,6 +268,14 @@ SslContext_t::SslContext_t (bool is_server, const std::string &privkeyfile, cons
 		SSL_CTX_set_session_id_context (pCtx, (unsigned char*)"eventmachine", 12);
 	}
 	else {
+		#if OPENSSL_VERSION_NUMBER >= 0x10002000L
+		if (alpn) {
+			SSL_CTX_set_alpn_protos(pCtx, (const unsigned char *)"\x02h2", 3);
+		}
+		#else
+			#error "Incorrect openssl version for ALPN support"
+		#endif /* OPENSSL_VERSION_NUMBER >= 0x10002000L */		
+
 		int e;
 		if (privkeyfile.length() > 0) {
 			e = SSL_CTX_use_PrivateKey_file (pCtx, privkeyfile.c_str(), SSL_FILETYPE_PEM);
@@ -304,7 +312,7 @@ SslContext_t::~SslContext_t()
 SslBox_t::SslBox_t
 ******************/
 
-SslBox_t::SslBox_t (bool is_server, const std::string &privkeyfile, const std::string &certchainfile, bool verify_peer, bool fail_if_no_peer_cert, const std::string &snihostname, const std::string &cipherlist, const std::string &ecdh_curve, const std::string &dhparam, int ssl_version, const uintptr_t binding):
+SslBox_t::SslBox_t (bool is_server, const std::string &privkeyfile, const std::string &certchainfile, bool verify_peer, bool fail_if_no_peer_cert, const std::string &snihostname, const std::string &cipherlist, const std::string &ecdh_curve, const std::string &dhparam, int ssl_version, const uintptr_t binding, bool alpn):
 	bIsServer (is_server),
 	bHandshakeCompleted (false),
 	bVerifyPeer (verify_peer),
@@ -317,7 +325,7 @@ SslBox_t::SslBox_t (bool is_server, const std::string &privkeyfile, const std::s
 	 * a new one every time we come here.
 	 */
 
-	Context = new SslContext_t (bIsServer, privkeyfile, certchainfile, cipherlist, ecdh_curve, dhparam, ssl_version);
+	Context = new SslContext_t (bIsServer, privkeyfile, certchainfile, cipherlist, ecdh_curve, dhparam, ssl_version, alpn);
 	assert (Context);
 
 	pbioRead = BIO_new (BIO_s_mem());

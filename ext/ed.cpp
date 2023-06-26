@@ -1234,7 +1234,7 @@ void ConnectionDescriptor::StartTls()
 	if (SslBox)
 		throw std::runtime_error ("SSL/TLS already running on connection");
 
-	SslBox = new SslBox_t (bIsServer, PrivateKeyFilename, CertChainFilename, bSslVerifyPeer, bSslFailIfNoPeerCert, SniHostName, CipherList, EcdhCurve, DhParam, Protocols, GetBinding());
+	SslBox = new SslBox_t (bIsServer, PrivateKeyFilename, CertChainFilename, bSslVerifyPeer, bSslFailIfNoPeerCert, SniHostName, CipherList, EcdhCurve, DhParam, Protocols, GetBinding(), bAlpn);
 	_DispatchCiphertext();
 
 }
@@ -1251,7 +1251,7 @@ ConnectionDescriptor::SetTlsParms
 *********************************/
 
 #ifdef WITH_SSL
-void ConnectionDescriptor::SetTlsParms (const char *privkey_filename, const char *certchain_filename, bool verify_peer, bool fail_if_no_peer_cert, const char *sni_hostname, const char *cipherlist, const char *ecdh_curve, const char *dhparam, int protocols)
+void ConnectionDescriptor::SetTlsParms (const char *privkey_filename, const char *certchain_filename, bool verify_peer, bool fail_if_no_peer_cert, const char *sni_hostname, const char *cipherlist, const char *ecdh_curve, const char *dhparam, int protocols, bool alpn)
 {
 	if (SslBox)
 		throw std::runtime_error ("call SetTlsParms before calling StartTls");
@@ -1261,6 +1261,7 @@ void ConnectionDescriptor::SetTlsParms (const char *privkey_filename, const char
 		CertChainFilename = certchain_filename;
 	bSslVerifyPeer     = verify_peer;
 	bSslFailIfNoPeerCert = fail_if_no_peer_cert;
+	bAlpn = alpn;
 
 	if (sni_hostname && *sni_hostname)
 		SniHostName = sni_hostname;
@@ -1274,7 +1275,7 @@ void ConnectionDescriptor::SetTlsParms (const char *privkey_filename, const char
 	Protocols = protocols;
 }
 #else
-void ConnectionDescriptor::SetTlsParms (const char *privkey_filename UNUSED, const char *certchain_filename UNUSED, bool verify_peer UNUSED, bool fail_if_no_peer_cert UNUSED, const char *sni_hostname UNUSED, const char *cipherlist UNUSED, const char *ecdh_curve UNUSED, const char *dhparam UNUSED, int protocols UNUSED)
+void ConnectionDescriptor::SetTlsParms (const char *privkey_filename UNUSED, const char *certchain_filename UNUSED, bool verify_peer UNUSED, bool fail_if_no_peer_cert UNUSED, const char *sni_hostname UNUSED, const char *cipherlist UNUSED, const char *ecdh_curve UNUSED, const char *dhparam UNUSED, int protocols UNUSED, bool alpn UNUSED)
 {
 	throw std::runtime_error ("Encryption not available on this event-machine");
 }

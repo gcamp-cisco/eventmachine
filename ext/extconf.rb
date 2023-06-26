@@ -70,7 +70,7 @@ def pkg_config_wrapper(pretty_name, name)
 end
 
 if ENV['CROSS_COMPILING']
-  openssl_version = ENV.fetch("OPENSSL_VERSION", "1.0.2e")
+  openssl_version = ENV.fetch("OPENSSL_VERSION", "1.0.2u")
   openssl_dir = File.expand_path("~/.rake-compiler/builds/openssl-#{openssl_version}/")
   if File.exist?(openssl_dir)
     FileUtils.mkdir_p Dir.pwd+"/openssl/"
@@ -78,6 +78,7 @@ if ENV['CROSS_COMPILING']
     FileUtils.cp Dir[openssl_dir+"/lib*.a"], Dir.pwd, :verbose => true
     $INCFLAGS << " -I#{Dir.pwd}" # for the openssl headers
     add_define "WITH_SSL"
+    append_ldflags "-l:libssl.a -l:libcrypto.a"
   else
     STDERR.puts
     STDERR.puts "**************************************************************************************"

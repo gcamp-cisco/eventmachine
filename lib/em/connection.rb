@@ -418,6 +418,7 @@ module EventMachine
       priv_key     = args[:private_key_file]
       cert_chain   = args[:cert_chain_file]
       verify_peer  = args[:verify_peer]
+      use_alpn     = args[:use_alpn]
       sni_hostname = args[:sni_hostname]
       cipher_list  = args[:cipher_list]
       ssl_version  = args[:ssl_version]
@@ -455,7 +456,7 @@ module EventMachine
         end
       end
 
-      EventMachine::set_tls_parms(@signature, priv_key || '', cert_chain || '', verify_peer, fail_if_no_peer_cert, sni_hostname || '', cipher_list || '', ecdh_curve || '', dhparam || '', protocols_bitmask)
+      EventMachine::set_tls_parms(@signature, priv_key || '', cert_chain || '', verify_peer, fail_if_no_peer_cert, sni_hostname || '', cipher_list || '', ecdh_curve || '', dhparam || '', protocols_bitmask, use_alpn)
       EventMachine::start_tls @signature
     end
 
